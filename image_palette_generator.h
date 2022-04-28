@@ -34,6 +34,8 @@ class ImagePaletteGenerator {
 
   std::vector<Color> GetPixels();
 
+  Color GetDominantColor();
+
   int32_t GetPixelCount();
 
   Color GetQuantizedColor(Color color);

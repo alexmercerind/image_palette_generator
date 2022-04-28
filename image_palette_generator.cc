@@ -11,6 +11,8 @@
 #include <memory>
 #include <unordered_map>
 
+#include "quantized_color_count.h"
+
 #define STBI_WINDOWS_UTF8
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -62,7 +64,7 @@ int32_t ImagePaletteGenerator::GetPixelCount() {
 }
 
 std::vector<Color> ImagePaletteGenerator::GetPixels() {
-  if (!pixels_.empty()) {
+  if (!pixels_.empty() || data_ == nullptr) {
     return pixels_;
   }
   // Clamp left & top to a minimum of 0.
@@ -93,6 +95,30 @@ std::vector<Color> ImagePaletteGenerator::GetPixels() {
   }
   assert(byte_count == GetPixelCount() * channels_);
   return pixels_;
+}
+
+Color ImagePaletteGenerator::GetDominantColor() {
+  auto pixels = GetPixels();
+  if (pixels.empty()) {
+    return Color{};
+  }
+  auto dominant_count = 0;
+  auto dominant_color = Color{};
+  auto color_map = std::unordered_map<Color, QuantizedColorCount>();
+  for (auto pixel : pixels) {
+    auto color = pixel;
+    if (quantized_) {
+      color = GetQuantizedColor(color);
+    }
+    color_map[color]++;
+  }
+  for (auto& [color, count] : color_map) {
+    if (count.value() > dominant_count) {
+      dominant_count = count.value();
+      dominant_color = color;
+    }
+  }
+  return dominant_color;
 }
 
 Color ImagePaletteGenerator::GetQuantizedColor(Color color) {
