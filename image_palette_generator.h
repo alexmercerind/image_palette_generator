@@ -7,6 +7,7 @@
 /// LICENSE file.
 
 #include <stdint.h>
+#include <stdio.h>
 
 #ifndef IMAGE_PALETTE_GENERATOR_H_
 #define IMAGE_PALETTE_GENERATOR_H_
@@ -23,23 +24,35 @@
 extern "C" {
 #endif
 
+typedef struct _RGBA {
+  int8_t r;
+  int8_t g;
+  int8_t b;
+  int8_t a;
+} RGBA;
+
 typedef struct _ImagePalette {
-  int32_t colors[IMAGE_PALETTE_GENERATOR_COLORS_MAX];
+  RGBA colors[IMAGE_PALETTE_GENERATOR_COLORS_MAX];
   int32_t count;
 } ImagePalette;
 
-DLLEXPORT ImagePalette image_palette_from_memory(uint8_t* data, int32_t size,
-                                                 int left, int32_t top,
-                                                 int32_t right, int32_t bottom);
+DLLEXPORT RGBA Int32ToRGBA(int32_t color);
 
-DLLEXPORT ImagePalette image_palette_from_file(uint8_t* data, int32_t size,
-                                               int left, int32_t top,
-                                               int32_t right, int32_t bottom);
+DLLEXPORT int32_t RGBAToInt32(RGBA color);
 
-DLLEXPORT ImagePalette image_palette_from_filepath(uint8_t* data, int32_t size,
-                                                   int left, int32_t top,
-                                                   int32_t right,
-                                                   int32_t bottom);
+DLLEXPORT char* RGBAToCStr(RGBA color);
+
+DLLEXPORT ImagePalette ImagePaletteFromMemory(uint8_t* buffer, int32_t size,
+                                              int32_t left, int32_t right,
+                                              int32_t top, int32_t bottom);
+
+DLLEXPORT ImagePalette ImagePaletteFromFile(FILE* file, int32_t left,
+                                            int32_t right, int32_t top,
+                                            int32_t bottom);
+
+DLLEXPORT ImagePalette ImagePaletteFromFileName(char* file_name, int32_t left,
+                                                int32_t right, int32_t top,
+                                                int32_t bottom);
 
 #ifdef __cplusplus
 }
