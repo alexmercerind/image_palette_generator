@@ -1,3 +1,11 @@
+/// This file is a part of image_palette_generator
+/// (https://github.com/alexmercerind/image_palette_generator).
+///
+/// Copyright (c) 2022, Hitesh Kumar Saini <saini123hitesh@gmail.com>.
+/// All rights reserved.
+/// Use of this source code is governed by MIT license that can be found in the
+/// LICENSE file.
+
 #include <stdint.h>
 
 #ifndef IMAGE_PALETTE_GENERATOR_H_
@@ -23,6 +31,15 @@ typedef struct _ImagePalette {
 DLLEXPORT ImagePalette image_palette_from_memory(uint8_t* data, int32_t size,
                                                  int left, int32_t top,
                                                  int32_t right, int32_t bottom);
+
+DLLEXPORT ImagePalette image_palette_from_file(uint8_t* data, int32_t size,
+                                               int left, int32_t top,
+                                               int32_t right, int32_t bottom);
+
+DLLEXPORT ImagePalette image_palette_from_filepath(uint8_t* data, int32_t size,
+                                                   int left, int32_t top,
+                                                   int32_t right,
+                                                   int32_t bottom);
 
 #ifdef __cplusplus
 }
