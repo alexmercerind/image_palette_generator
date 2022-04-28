@@ -6,56 +6,52 @@
 /// Use of this source code is governed by MIT license that can be found in the
 /// LICENSE file.
 
-#include <stdint.h>
-#include <stdio.h>
-
 #ifndef IMAGE_PALETTE_GENERATOR_H_
 #define IMAGE_PALETTE_GENERATOR_H_
 
-#define IMAGE_PALETTE_GENERATOR_COLORS_MAX 20
+#include <string>
+#include <vector>
 
-#ifdef _WIN32
-#define DLLEXPORT __declspec(dllexport)
-#else
-#define DLLEXPORT
-#endif
+#include "color.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+class ImagePaletteGenerator {
+ public:
+  void Open(uint8_t* buffer, int32_t size);
 
-typedef struct _RGBA {
-  int8_t r;
-  int8_t g;
-  int8_t b;
-  int8_t a;
-} RGBA;
+  void Open(FILE* file);
 
-typedef struct _ImagePalette {
-  RGBA colors[IMAGE_PALETTE_GENERATOR_COLORS_MAX];
-  int32_t count;
-} ImagePalette;
+  void Open(std::string file_name);
 
-DLLEXPORT RGBA Int32ToRGBA(int32_t color);
+  void SetQuantized(bool quantized);
 
-DLLEXPORT int32_t RGBAToInt32(RGBA color);
+  void SetLeftBound(int left_bound);
 
-DLLEXPORT char* RGBAToCStr(RGBA color);
+  void SetRightBound(int right_bound);
 
-DLLEXPORT ImagePalette ImagePaletteFromMemory(uint8_t* buffer, int32_t size,
-                                              int32_t left, int32_t right,
-                                              int32_t top, int32_t bottom);
+  void SetTopBound(int top_bound);
 
-DLLEXPORT ImagePalette ImagePaletteFromFile(FILE* file, int32_t left,
-                                            int32_t right, int32_t top,
-                                            int32_t bottom);
+  void SetBottomBound(int bottom_bound);
 
-DLLEXPORT ImagePalette ImagePaletteFromFileName(char* file_name, int32_t left,
-                                                int32_t right, int32_t top,
-                                                int32_t bottom);
+  std::vector<Color> GetPixels();
 
-#ifdef __cplusplus
-}
-#endif
+  int32_t GetPixelCount();
+
+  Color GetQuantizedColor(Color color);
+
+ private:
+  static constexpr auto kQuantizedWordWidth = 5;
+  static constexpr auto kQuantizedChannelWidth = 8;
+
+  bool quantized_ = true;
+  uint8_t* data_ = nullptr;
+  int32_t width_ = 0;
+  int32_t height_ = 0;
+  int32_t channels_ = 4;
+  int32_t left_bound_ = 0;
+  int32_t right_bound_ = INT32_MAX;
+  int32_t top_bound_ = 0;
+  int32_t bottom_bound_ = INT32_MAX;
+  std::vector<Color> pixels_ = {};
+};
 
 #endif  // IMAGE_PALETTE_GENERATOR_H_
