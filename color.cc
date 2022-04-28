@@ -18,6 +18,8 @@ Color::Color(int32_t color) {
   a_ = (color >> 24) & 0xFF;
 }
 
+Color::Color() : r_(0), g_(0), b_(0), a_(0){};
+
 int32_t Color::ToInt32() {
   return (r_ << 0) | (g_ << 8) | (b_ << 16) | (a_ << 24);
 }

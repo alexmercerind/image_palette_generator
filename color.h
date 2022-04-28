@@ -18,15 +18,17 @@ class Color {
   uint8_t b() const { return b_; };
   uint8_t a() const { return a_; };
 
-  bool operator==(Color color) {
+  bool operator==(const Color color) const {
     return r_ == color.r_ && g_ == color.g_ && b_ == color.b_ && a_ == color.a_;
   }
 
-  bool operator!=(Color color) { return !(*this == color); }
+  bool operator!=(const Color color) const { return !(*this == color); }
 
   Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
   Color(int32_t color);
+
+  Color();
 
   int32_t ToInt32();
 
@@ -38,5 +40,17 @@ class Color {
   uint8_t b_;
   uint8_t a_;
 };
+
+namespace std {
+
+template <>
+struct hash<Color> {
+  size_t operator()(Color const& color) const {
+    return (color.r() << 0) | (color.g() << 8) | (color.b() << 16) |
+           (color.a() << 24);
+  }
+};
+
+}  // namespace std
 
 #endif  // COLOR_H_
