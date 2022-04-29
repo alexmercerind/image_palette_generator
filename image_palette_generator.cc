@@ -8,6 +8,7 @@
 
 #include "image_palette_generator.h"
 
+#include <cmath>
 #include <memory>
 #include <unordered_map>
 
@@ -15,22 +16,29 @@
 
 #define STBI_WINDOWS_UTF8
 #define STB_IMAGE_IMPLEMENTATION
-
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "external/stb/stb_image.h"
+#include "external/stb/stb_image_resize.h"
 
-void ImagePaletteGenerator::Open(uint8_t* buffer, int32_t size) {
+void ImagePaletteGenerator::Open(uint8_t* buffer, int32_t size, bool rescale) {
+  stbi_image_free(data_);
   data_ = stbi_load_from_memory(buffer, size, &width_, &height_, &channels_, 0);
   pixels_.clear();
+  Rescale();
 }
 
-void ImagePaletteGenerator::Open(FILE* file) {
+void ImagePaletteGenerator::Open(FILE* file, bool rescale) {
+  stbi_image_free(data_);
   data_ = stbi_load_from_file(file, &width_, &height_, &channels_, 0);
   pixels_.clear();
+  Rescale();
 }
 
-void ImagePaletteGenerator::Open(std::string file_name) {
+void ImagePaletteGenerator::Open(std::string file_name, bool rescale) {
+  stbi_image_free(data_);
   data_ = stbi_load(file_name.c_str(), &width_, &height_, &channels_, 0);
   pixels_.clear();
+  Rescale();
 }
 
 void ImagePaletteGenerator::SetQuantized(bool quantized) {
@@ -53,6 +61,20 @@ void ImagePaletteGenerator::SetBottomBound(int bottom_bound) {
   bottom_bound_ = bottom_bound;
 }
 
+void ImagePaletteGenerator::Rescale() {
+  // Downscale the image dimensions to reduce operations & number of elements in
+  // the |pixels_|.
+  if (width_ > kRescaleWidth) {
+    rescaled_data_ = std::make_unique<uint8_t[]>(pow(kRescaleWidth, 2) *
+                                                 height_ / width_ * channels_);
+    stbir_resize_uint8(data_, width_, height_, 0, rescaled_data_.get(),
+                       kRescaleWidth, kRescaleWidth * height_ / width_, 0,
+                       channels_);
+    width_ = kRescaleWidth;
+    height_ = kRescaleWidth * height_ / width_;
+  }
+}
+
 int32_t ImagePaletteGenerator::GetPixelCount() {
   // Clamp left & top to a minimum of 0.
   auto left = 0 > left_bound_ ? 0 : left_bound_;
@@ -64,7 +86,7 @@ int32_t ImagePaletteGenerator::GetPixelCount() {
 }
 
 std::vector<Color> ImagePaletteGenerator::GetPixels() {
-  if (!pixels_.empty() || data_ == nullptr) {
+  if (!pixels_.empty() || rescaled_data_ == nullptr) {
     return pixels_;
   }
   // Clamp left & top to a minimum of 0.
@@ -82,7 +104,8 @@ std::vector<Color> ImagePaletteGenerator::GetPixels() {
       // RGBA.
       auto color = 0;
       for (auto i = 0; i < channels_; i++) {
-        color += ((int32_t)data_[position + i] << (i * 8));
+        color +=
+            (static_cast<int32_t>(rescaled_data_[position + i]) << (i * 8));
       }
       // Image without alpha channel. Explicitly add 0xFF.
       if (channels_ == 3) {
@@ -128,3 +151,5 @@ Color ImagePaletteGenerator::GetQuantizedColor(Color color) {
                static_cast<uint8_t>(color.g() & word_mask),
                static_cast<uint8_t>(color.b() & word_mask), color.a()};
 }
+
+ImagePaletteGenerator::~ImagePaletteGenerator() { stbi_image_free(data_); }
