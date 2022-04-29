@@ -9,8 +9,6 @@
 #ifndef COLOR_H_
 #define COLOR_H_
 
-#include <sstream>
-
 class Color {
  public:
   uint8_t r() const { return r_; };
@@ -33,6 +31,10 @@ class Color {
   int32_t ToInt32();
 
   std::string ToString();
+
+  bool IsDark();
+
+  bool IsLight();
 
  private:
   uint8_t r_;

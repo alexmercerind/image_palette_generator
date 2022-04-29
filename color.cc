@@ -8,6 +8,8 @@
 
 #include "color.h"
 
+#include <sstream>
+
 Color::Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
     : r_(r), g_(g), b_(b), a_(a) {}
 
@@ -31,3 +33,10 @@ std::string Color::ToString() {
          << static_cast<int32_t>(a_) << ")";
   return stream.str();
 }
+
+bool Color::IsDark() {
+  return static_cast<double>(1 - (0.299 * r_ + 0.587 * g_ + 0.114 * b_) /
+                                     255.0) > 0.5;
+}
+
+bool Color::IsLight() { return !IsDark(); }
