@@ -9,6 +9,8 @@
 #ifndef COLOR_H_
 #define COLOR_H_
 
+#include <string>
+
 class Color {
  public:
   uint8_t r() const { return r_; };

@@ -17,28 +17,34 @@
 #define STBI_WINDOWS_UTF8
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include "external/stb/stb_image.h"
-#include "external/stb/stb_image_resize.h"
+#include "stb_image.h"
+#include "stb_image_resize.h"
 
 void ImagePaletteGenerator::Open(uint8_t* buffer, int32_t size, bool rescale) {
   stbi_image_free(data_);
   data_ = stbi_load_from_memory(buffer, size, &width_, &height_, &channels_, 0);
   pixels_.clear();
-  Rescale();
+  if (rescale) {
+    Rescale();
+  }
 }
 
 void ImagePaletteGenerator::Open(FILE* file, bool rescale) {
   stbi_image_free(data_);
   data_ = stbi_load_from_file(file, &width_, &height_, &channels_, 0);
   pixels_.clear();
-  Rescale();
+  if (rescale) {
+    Rescale();
+  }
 }
 
 void ImagePaletteGenerator::Open(std::string file_name, bool rescale) {
   stbi_image_free(data_);
   data_ = stbi_load(file_name.c_str(), &width_, &height_, &channels_, 0);
   pixels_.clear();
-  Rescale();
+  if (rescale) {
+    Rescale();
+  }
 }
 
 void ImagePaletteGenerator::SetQuantized(bool quantized) {
@@ -72,6 +78,8 @@ void ImagePaletteGenerator::Rescale() {
                        channels_);
     width_ = kRescaleWidth;
     height_ = kRescaleWidth * height_ / width_;
+  } else {
+    rescaled_data_ = nullptr;
   }
 }
 
@@ -86,7 +94,8 @@ int32_t ImagePaletteGenerator::GetPixelCount() {
 }
 
 std::vector<Color> ImagePaletteGenerator::GetPixels() {
-  if (!pixels_.empty() || rescaled_data_ == nullptr) {
+  uint8_t* data = rescaled_data_ ? rescaled_data_.get() : data_;
+  if (!pixels_.empty()) {
     return pixels_;
   }
   // Clamp left & top to a minimum of 0.
@@ -104,8 +113,7 @@ std::vector<Color> ImagePaletteGenerator::GetPixels() {
       // RGBA.
       auto color = 0;
       for (auto i = 0; i < channels_; i++) {
-        color +=
-            (static_cast<int32_t>(rescaled_data_[position + i]) << (i * 8));
+        color += (static_cast<int32_t>(data[position + i]) << (i * 8));
       }
       // Image without alpha channel. Explicitly add 0xFF.
       if (channels_ == 3) {
