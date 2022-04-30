@@ -11,6 +11,7 @@ set(POSITION_INDEPENDENT_CODE ON)
 add_library(
     ${PROJECT_NAME} SHARED
     "color.cc"
+    "color_count.cc"
     "image_palette_generator.cc"
 )
 
@@ -24,4 +25,3 @@ target_link_libraries(
     ${PROJECT_NAME}
     "m"
 )
-
