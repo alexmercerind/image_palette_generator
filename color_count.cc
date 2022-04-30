@@ -6,21 +6,8 @@
 /// Use of this source code is governed by MIT license that can be found in the
 /// LICENSE file.
 
-#ifndef QUANTIZED_COLOR_COUNT_H_
-#define QUANTIZED_COLOR_COUNT_H_
+#include "color_count.h"
 
-#include <stdint.h>
+ColorCount::ColorCount() : value_(0) {}
 
-class QuantizedColorCount {
- public:
-  int32_t value() { return value_; }
-
-  QuantizedColorCount() : value_(0) {}
-
-  int operator++(int) { return value_++; }
-
- private:
-  int32_t value_;
-};
-
-#endif
+int ColorCount::operator++(int) { return value_++; }
