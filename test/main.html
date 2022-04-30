@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>image_palette_generator</title>
+</head>
+<body id="body" style="display: flex; gap: 10px; flex-wrap: wrap;"></body>
+<script defer>
+const colors = function(){/*
+rgba(0, 0, 0, 255)
+rgba(236, 28, 59, 255)
+rgba(238, 34, 56, 255)
+rgba(254, 49, 93, 255)
+rgba(25, 51, 40, 255)
+*/}.toString().slice(14,-3)
+colors.split('\n').map(color => {
+    const element = document.createElement("div");
+    element.style.height = "80px";
+    element.style.width = "80px";
+    element.style.backgroundColor = color;
+    document.getElementById("body").appendChild(element);
+});
+</script>
+</html>
