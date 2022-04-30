@@ -156,7 +156,8 @@ Color ImagePaletteGenerator::GetDominantColor() {
   return dominant_color;
 }
 
-std::vector<Color> ImagePaletteGenerator::GetPalette(int32_t max_color_count) {
+std::vector<Color> ImagePaletteGenerator::GetRawPalette(
+    int32_t max_color_count) {
   int32_t chunk_dimension = sqrt(max_color_count);
   // Clamp left & top to a minimum of 0.
   auto left = 0 > left_bound_ ? 0 : left_bound_;
@@ -201,12 +202,11 @@ std::vector<Color> ImagePaletteGenerator::GetPalette(int32_t max_color_count) {
   return palette_;
 }
 
-std::vector<Color> ImagePaletteGenerator::GetNormalizedPalette(
-    int32_t max_color_count) {
+std::vector<Color> ImagePaletteGenerator::GetPalette(int32_t max_color_count) {
   if (!normalized_palette_.empty()) {
     return normalized_palette_;
   }
-  GetPalette(max_color_count);
+  GetRawPalette(max_color_count);
   return normalized_palette_;
 }
 
@@ -224,7 +224,9 @@ Color ImagePaletteGenerator::GetAveragePixelAt(int32_t x, int32_t y,
        i++) {
     for (auto j = y;
          j < std::min(y + ((bottom - top) / chunk_dimension), bottom); j++) {
-      buffer.emplace_back(pixels[i][j]);
+      if (pixels_[i][j] != Color{}) {
+        buffer.emplace_back(pixels_[i][j]);
+      }
     }
   }
   size_t r = 0, g = 0, b = 0, a = 0;

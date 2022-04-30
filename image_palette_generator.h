@@ -35,10 +35,10 @@ class ImagePaletteGenerator {
 
   Color GetDominantColor();
 
-  std::vector<Color> GetPalette(
+  std::vector<Color> GetRawPalette(
       int32_t max_color_count = kDefaultPaletteColorCount);
 
-  std::vector<Color> GetNormalizedPalette(
+  std::vector<Color> GetPalette(
       int32_t max_color_count = kDefaultPaletteColorCount);
 
   ~ImagePaletteGenerator();
