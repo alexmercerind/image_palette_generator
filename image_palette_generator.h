@@ -36,7 +36,10 @@ class ImagePaletteGenerator {
   Color GetDominantColor();
 
   std::vector<Color> GetPalette(
-      int32_t color_count = kDefaultPaletteColorCount);
+      int32_t max_color_count = kDefaultPaletteColorCount);
+
+  std::vector<Color> GetNormalizedPalette(
+      int32_t max_color_count = kDefaultPaletteColorCount);
 
   ~ImagePaletteGenerator();
 
@@ -54,9 +57,9 @@ class ImagePaletteGenerator {
   static constexpr auto kDefaultPaletteColorCount = 16;
   static constexpr auto kQuantizationWordWidth = 5;
   static constexpr auto kQuantizationChannelWidth = 8;
-  static constexpr auto kRescaleWidth = 400;
+  static constexpr auto kRescaleWidth = 200;
 
-  bool quantized_ = true;
+  bool quantized_ = false;
   uint8_t* data_ = nullptr;
   std::unique_ptr<uint8_t[]> rescaled_data_ = nullptr;
   int32_t width_ = 0;
@@ -67,6 +70,8 @@ class ImagePaletteGenerator {
   int32_t top_bound_ = 0;
   int32_t bottom_bound_ = INT32_MAX;
   std::vector<std::vector<Color>> pixels_ = {};
+  std::vector<Color> palette_ = {};
+  std::vector<Color> normalized_palette_ = {};
 };
 
 #endif  // IMAGE_PALETTE_GENERATOR_H_

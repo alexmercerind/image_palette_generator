@@ -25,6 +25,8 @@ void ImagePaletteGenerator::Open(uint8_t* buffer, int32_t size) {
   stbi_image_free(data_);
   data_ = stbi_load_from_memory(buffer, size, &width_, &height_, &channels_, 0);
   pixels_.clear();
+  palette_.clear();
+  normalized_palette_.clear();
   Rescale();
 }
 
@@ -32,6 +34,8 @@ void ImagePaletteGenerator::Open(FILE* file) {
   stbi_image_free(data_);
   data_ = stbi_load_from_file(file, &width_, &height_, &channels_, 0);
   pixels_.clear();
+  palette_.clear();
+  normalized_palette_.clear();
   Rescale();
 }
 
@@ -39,6 +43,8 @@ void ImagePaletteGenerator::Open(std::string file_name) {
   stbi_image_free(data_);
   data_ = stbi_load(file_name.c_str(), &width_, &height_, &channels_, 0);
   pixels_.clear();
+  palette_.clear();
+  normalized_palette_.clear();
   Rescale();
 }
 
@@ -150,22 +156,29 @@ Color ImagePaletteGenerator::GetDominantColor() {
   return dominant_color;
 }
 
-std::vector<Color> ImagePaletteGenerator::GetPalette(int32_t color_count) {
-  int32_t chunk_dimension = sqrt(color_count);
+std::vector<Color> ImagePaletteGenerator::GetPalette(int32_t max_color_count) {
+  int32_t chunk_dimension = sqrt(max_color_count);
   // Clamp left & top to a minimum of 0.
   auto left = 0 > left_bound_ ? 0 : left_bound_;
   auto top = 0 > top_bound_ ? 0 : top_bound_;
   // Clamp right & bottom to a maximum of the image dimensions.
   auto right = right_bound_ > width_ ? width_ : right_bound_;
   auto bottom = bottom_bound_ > height_ ? height_ : bottom_bound_;
-  auto palette = std::vector<Color>{};
   auto pixels = GetPixels();
-  // No image loaded or pixels found. Return empty palette.
+  // No image loaded or pixels found. Return empty palette_.
   if (pixels.empty()) {
     return std::vector<Color>{};
   }
+  // Already calculated.
+  if (!palette_.empty()) {
+    return palette_;
+  }
   for (auto i = left; i < right; i += ((right - left) / chunk_dimension)) {
     for (auto j = top; j < bottom; j += ((bottom - top) / chunk_dimension)) {
+      if (std::find(palette_.begin(), palette_.end(), pixels_[i][j]) ==
+          palette_.end()) {
+        palette_.emplace_back(pixels_[i][j]);
+      }
       // Browse through a chunk of image & calculate the averaged color.
       //
       // i ---------- i + ((|right| - |left|) / |chunk_dimension|)
@@ -175,16 +188,25 @@ std::vector<Color> ImagePaletteGenerator::GetPalette(int32_t color_count) {
       //   ----------
       // j           j + ((|bottom - |top|) / |chunk_dimension|)
       auto averaged_pixel_color = GetAveragePixelAt(i, j, chunk_dimension);
-      if (std::find(palette.begin(), palette.end(), averaged_pixel_color) ==
-          palette.end()) {
-        palette.emplace_back(averaged_pixel_color);
+      if (std::find(normalized_palette_.begin(), normalized_palette_.end(),
+                    averaged_pixel_color) == normalized_palette_.end()) {
+        normalized_palette_.emplace_back(averaged_pixel_color);
       }
     }
   }
-  std::sort(palette.begin(), palette.end(), [](Color a, Color b) {
+  std::sort(palette_.begin(), palette_.end(), [](Color a, Color b) {
     return a.r() - b.r() + a.g() - b.g() + a.b() - b.b();
   });
-  return palette;
+  return palette_;
+}
+
+std::vector<Color> ImagePaletteGenerator::GetNormalizedPalette(
+    int32_t max_color_count) {
+  if (!normalized_palette_.empty()) {
+    return normalized_palette_;
+  }
+  GetPalette(max_color_count);
+  return normalized_palette_;
 }
 
 Color ImagePaletteGenerator::GetAveragePixelAt(int32_t x, int32_t y,
@@ -210,6 +232,9 @@ Color ImagePaletteGenerator::GetAveragePixelAt(int32_t x, int32_t y,
     g += color.g();
     b += color.b();
     a += color.a();
+  }
+  if (buffer.empty()) {
+    return Color{};
   }
   auto color = Color{static_cast<uint8_t>(r / buffer.size()),
                      static_cast<uint8_t>(g / buffer.size()),
