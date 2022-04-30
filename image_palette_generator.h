@@ -9,13 +9,19 @@
 #ifndef IMAGE_PALETTE_GENERATOR_H_
 #define IMAGE_PALETTE_GENERATOR_H_
 
+#ifdef _WIN32
+#define DLLEXPORT __declspec(dllexport)
+#else
+#define DLLEXPORT
+#endif
+
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "color.h"
 
-class ImagePaletteGenerator {
+class DLLEXPORT ImagePaletteGenerator {
  public:
   void Open(uint8_t* buffer, int32_t size);
 
