@@ -17,39 +17,43 @@
 
 class ImagePaletteGenerator {
  public:
-  void Open(uint8_t* buffer, int32_t size, bool rescale = true);
+  void Open(uint8_t* buffer, int32_t size);
 
-  void Open(FILE* file, bool rescale = true);
+  void Open(FILE* file);
 
-  void Open(std::string file_name, bool rescale = true);
+  void Open(std::string file_name);
 
   void SetQuantized(bool quantized);
 
-  void SetLeftBound(int left_bound);
+  void SetLeftBound(int32_t left_bound);
 
-  void SetRightBound(int right_bound);
+  void SetRightBound(int32_t right_bound);
 
-  void SetTopBound(int top_bound);
+  void SetTopBound(int32_t top_bound);
 
-  void SetBottomBound(int bottom_bound);
+  void SetBottomBound(int32_t bottom_bound);
 
   Color GetDominantColor();
+
+  std::vector<Color> GetPalette(
+      int32_t color_count = kDefaultPaletteColorCount);
 
   ~ImagePaletteGenerator();
 
  private:
   void Rescale();
 
-  std::vector<Color> GetPixels();
+  std::vector<std::vector<Color>> GetPixels();
 
   int32_t GetPixelCount();
 
+  Color GetAveragePixelAt(int32_t x, int32_t y, int32_t chunk_dimension);
+
   Color GetQuantizedColor(Color color);
 
-  static constexpr auto kQuantizedWordWidth = 5;
-  static constexpr auto kQuantizedChannelWidth = 8;
-
-  // TODO: Make |kRescaleWidth| configurable from client code.
+  static constexpr auto kDefaultPaletteColorCount = 16;
+  static constexpr auto kQuantizationWordWidth = 5;
+  static constexpr auto kQuantizationChannelWidth = 8;
   static constexpr auto kRescaleWidth = 400;
 
   bool quantized_ = true;
@@ -62,7 +66,7 @@ class ImagePaletteGenerator {
   int32_t right_bound_ = INT32_MAX;
   int32_t top_bound_ = 0;
   int32_t bottom_bound_ = INT32_MAX;
-  std::vector<Color> pixels_ = {};
+  std::vector<std::vector<Color>> pixels_ = {};
 };
 
 #endif  // IMAGE_PALETTE_GENERATOR_H_

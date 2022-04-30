@@ -30,6 +30,8 @@ class Color {
 
   Color();
 
+  void TakeAverage(Color color);
+
   int32_t ToInt32();
 
   std::string ToString();
