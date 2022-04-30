@@ -41,9 +41,8 @@ std::string Color::ToString() {
   return stream.str();
 }
 
-bool Color::IsDark() {
-  return static_cast<double>(1 - (0.299 * r_ + 0.587 * g_ + 0.114 * b_) /
-                                     255.0) > 0.5;
-}
+double Color::Luminance() { return 0.2126 * r_ + 0.7152 * g_ + 0.0722 * b_; }
+
+bool Color::IsDark() { return Luminance() <= 0.5; }
 
 bool Color::IsLight() { return !IsDark(); }

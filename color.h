@@ -36,6 +36,8 @@ class Color {
 
   std::string ToString();
 
+  double Luminance();
+
   bool IsDark();
 
   bool IsLight();
