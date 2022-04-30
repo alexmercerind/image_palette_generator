@@ -197,6 +197,10 @@ std::vector<Color> ImagePaletteGenerator::GetPalette(int32_t max_color_count) {
   std::sort(palette_.begin(), palette_.end(), [](Color a, Color b) {
     return a.r() - b.r() + a.g() - b.g() + a.b() - b.b();
   });
+  std::sort(normalized_palette_.begin(), normalized_palette_.end(),
+            [](Color a, Color b) {
+              return a.r() - b.r() + a.g() - b.g() + a.b() - b.b();
+            });
   return palette_;
 }
 
