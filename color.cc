@@ -22,6 +22,13 @@ Color::Color(int32_t color) {
 
 Color::Color() : r_(0), g_(0), b_(0), a_(0){};
 
+void Color::TakeAverage(Color color) {
+  r_ = (r_ + color.r()) / 2;
+  g_ = (g_ + color.g()) / 2;
+  b_ = (b_ + color.b()) / 2;
+  a_ = (a_ + color.a()) / 2;
+}
+
 int32_t Color::ToInt32() {
   return (r_ << 0) | (g_ << 8) | (b_ << 16) | (a_ << 24);
 }
