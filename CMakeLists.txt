@@ -20,8 +20,3 @@ target_include_directories(
     PUBLIC
     "external/stb"
 )
-
-target_link_libraries(
-    ${PROJECT_NAME}
-    "m"
-)
