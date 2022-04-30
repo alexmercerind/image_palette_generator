@@ -9,10 +9,14 @@ int32_t main(int32_t argc, char** argv) {
   }
   ImagePaletteGenerator palette_generator;
   palette_generator.Open(argv[1]);
-  printf("Dominant Color: %s\n",
+  printf("Dominant color: %s\n",
          palette_generator.GetDominantColor().ToString().c_str());
   printf("Palette:\n");
   for (auto color : palette_generator.GetPalette()) {
+    printf("%s\n", color.ToString().c_str());
+  }
+  printf("Normalized palette:\n");
+  for (auto color : palette_generator.GetNormalizedPalette()) {
     printf("%s\n", color.ToString().c_str());
   }
   return EXIT_SUCCESS;
