@@ -38,8 +38,6 @@ void ImagePaletteGenerator::Open(uint8_t* buffer, int32_t size) {
   stbi_image_free(data_);
   data_ = stbi_load_from_memory(buffer, size, &width_, &height_, &channels_, 0);
   pixels_.clear();
-  palette_.clear();
-  tones_.clear();
   Rescale();
 }
 
@@ -47,8 +45,6 @@ void ImagePaletteGenerator::Open(FILE* file) {
   stbi_image_free(data_);
   data_ = stbi_load_from_file(file, &width_, &height_, &channels_, 0);
   pixels_.clear();
-  palette_.clear();
-  tones_.clear();
   Rescale();
 }
 
@@ -56,8 +52,6 @@ void ImagePaletteGenerator::Open(char* file_name) {
   stbi_image_free(data_);
   data_ = stbi_load(file_name, &width_, &height_, &channels_, 0);
   pixels_.clear();
-  palette_.clear();
-  tones_.clear();
   Rescale();
 }
 
@@ -170,16 +164,36 @@ Color ImagePaletteGenerator::GetDominantColor() {
 }
 
 std::vector<Color> ImagePaletteGenerator::GetPalette(int32_t max_color_count) {
-  max_color_count += 2;
+  // Sometimes |exq_get_palette| seems to incorrectly quantize the image if
+  // there are less number of colors available in the image. e.g. generally
+  // returning incorrect sharp red color if image didn't have enough red, or
+  // sharp blue & sharp green color if image was mostly red.
+  // To pervent this, calling |GetTones| internally & checking if the number of
+  // tones is far less than |max_color_count|. Here, checking if less than 10
+  // tones are returned when passing |max_color_count| as 16.
+  bool enough_colors_available = true;
+  bool has_red = false, has_green = false, has_blue = false;
+  auto tones = GetTones(16);
+  if (tones.size() < 12) {
+    enough_colors_available = false;
+    for (const auto tone : tones) {
+      if (tone.r() > tone.g() && tone.r() > tone.b()) {
+        has_red = true;
+      } else if (tone.g() > tone.r() && tone.g() > tone.b()) {
+        has_green = true;
+      } else if (tone.b() > tone.r() && tone.b() > tone.g()) {
+        has_blue = true;
+      }
+    }
+  }
+  auto palette = std::vector<Color>{};
   auto pixels = GetPixels();
   // No image loaded or pixels found. Return empty |tones_|.
   if (pixels.empty()) {
     return std::vector<Color>{};
   }
-  if (!palette_.empty()) {
-    return palette_;
-  }
   auto pixel_buffer = std::vector<uint8_t>{};
+  pixel_buffer.reserve(pixels.size() * pixels[0].size() * 4);
   auto palette_buffer = std::make_unique<uint8_t[]>(max_color_count * 4);
   // Clamp left & top to a minimum of 0.
   auto left = 0 > left_bound_ ? 0 : left_bound_;
@@ -203,13 +217,29 @@ std::vector<Color> ImagePaletteGenerator::GetPalette(int32_t max_color_count) {
   for (auto i = 0; i < max_color_count; i++) {
     auto color = Color{palette_buffer[i * 4 + 0], palette_buffer[i * 4 + 1],
                        palette_buffer[i * 4 + 2], palette_buffer[i * 4 + 3]};
-    palette_.emplace_back(color);
+    if (enough_colors_available) {
+      palette.emplace_back(color);
+    } else {
+      // Letting non-sharp colors into the |palette|.
+      if (abs(color.r() - color.g()) < 100 &&
+          abs(color.r() - color.b()) < 100 &&
+          abs(color.g() - color.b()) < 100) {
+        palette.emplace_back(color);
+      } else if (has_red && color.r() > color.g() && color.r() > color.b()) {
+        palette.emplace_back(color);
+      } else if (has_green && color.g() > color.r() && color.g() > color.b()) {
+        palette.emplace_back(color);
+      } else if (has_blue && color.b() > color.r() && color.b() > color.g()) {
+        palette.emplace_back(color);
+      }
+    }
   }
   exq_free(static_cast<exq_data*>(exoquant_));
-  return std::vector<Color>{palette_.begin() + 1, palette_.end() - 1};
+  return std::vector<Color>{palette.begin(), palette.end()};
 }
 
 std::vector<Color> ImagePaletteGenerator::GetTones(int32_t max_color_count) {
+  auto tones = std::vector<Color>{};
   auto chunk_dimension = static_cast<int32_t>(sqrt(max_color_count));
   // Clamp left & top to a minimum of 0.
   auto left = 0 > left_bound_ ? 0 : left_bound_;
@@ -218,16 +248,19 @@ std::vector<Color> ImagePaletteGenerator::GetTones(int32_t max_color_count) {
   auto right = right_bound_ > width_ ? width_ : right_bound_;
   auto bottom = bottom_bound_ > height_ ? height_ : bottom_bound_;
   auto pixels = GetPixels();
-  // No image loaded or pixels found. Return empty |tones_|.
+  // No image loaded or pixels found. Return empty |tones|.
   if (pixels.empty()) {
     return std::vector<Color>{};
   }
-  // Already calculated.
-  if (!tones_.empty()) {
-    return tones_;
-  }
+  int32_t count = 0;
   for (auto i = left; i < right; i += ((right - left) / chunk_dimension)) {
     for (auto j = top; j < bottom; j += ((bottom - top) / chunk_dimension)) {
+      if (count > max_color_count) {
+        std::sort(tones.begin(), tones.end(), [](Color a, Color b) {
+          return a.Luminance() > b.Luminance();
+        });
+        return tones;
+      }
       // Browse through a chunk of image & calculate the averaged color.
       //
       // i ---------- i + ((|right| - |left|) / |chunk_dimension|)
@@ -237,15 +270,16 @@ std::vector<Color> ImagePaletteGenerator::GetTones(int32_t max_color_count) {
       //   ----------
       // j           j + ((|bottom - |top|) / |chunk_dimension|)
       auto averaged_pixel_color = GetAveragePixelAt(i, j, chunk_dimension);
-      if (std::find(tones_.begin(), tones_.end(), averaged_pixel_color) ==
-          tones_.end()) {
-        tones_.emplace_back(averaged_pixel_color);
+      if (std::find(tones.begin(), tones.end(), averaged_pixel_color) ==
+          tones.end()) {
+        tones.emplace_back(averaged_pixel_color);
+        count++;
       }
     }
   }
-  std::sort(tones_.begin(), tones_.end(),
+  std::sort(tones.begin(), tones.end(),
             [](Color a, Color b) { return a.Luminance() > b.Luminance(); });
-  return tones_;
+  return tones;
 }
 
 Color ImagePaletteGenerator::GetAveragePixelAt(int32_t x, int32_t y,

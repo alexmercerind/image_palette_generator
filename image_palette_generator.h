@@ -72,8 +72,6 @@ class ImagePaletteGenerator {
   int32_t top_bound_ = 0;
   int32_t bottom_bound_ = INT32_MAX;
   std::vector<std::vector<Color>> pixels_ = {};
-  std::vector<Color> palette_ = {};
-  std::vector<Color> tones_ = {};
   void* exoquant_ = nullptr;
 };
 
