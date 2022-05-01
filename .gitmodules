@@ -1,3 +1,6 @@
 [submodule "external/stb"]
 	path = external/stb
 	url = https://github.com/nothings/stb.git
+[submodule "external/exoquant"]
+	path = external/exoquant
+	url = https://github.com/exoticorn/exoquant.git
