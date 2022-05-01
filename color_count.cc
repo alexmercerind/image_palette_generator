@@ -10,4 +10,4 @@
 
 ColorCount::ColorCount() : value_(0) {}
 
-int ColorCount::operator++(int) { return value_++; }
+size_t ColorCount::operator++(int) { return value_++; }

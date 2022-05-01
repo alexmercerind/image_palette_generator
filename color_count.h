@@ -18,7 +18,7 @@ class ColorCount {
 
   ColorCount();
 
-  int operator++(int);
+  size_t operator++(int);
 
  private:
   size_t value_;
