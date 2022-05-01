@@ -15,5 +15,9 @@ int32_t main(int32_t argc, char** argv) {
   for (auto color : palette_generator.GetPalette()) {
     printf("%s\n", color.ToString().c_str());
   }
+  printf("Tones:\n");
+  for (auto color : palette_generator.GetTones()) {
+    printf("%s\n", color.ToString().c_str());
+  }
   return EXIT_SUCCESS;
 }
