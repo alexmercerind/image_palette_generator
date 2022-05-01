@@ -217,6 +217,9 @@ std::vector<Color> ImagePaletteGenerator::GetPalette(int32_t max_color_count) {
   for (auto i = 0; i < max_color_count; i++) {
     auto color = Color{palette_buffer[i * 4 + 0], palette_buffer[i * 4 + 1],
                        palette_buffer[i * 4 + 2], palette_buffer[i * 4 + 3]};
+    if (color.r() >= 248 || color.g() >= 248 || color.b() >= 248) {
+      continue;
+    }
     if (enough_colors_available) {
       palette.emplace_back(color);
     } else {
@@ -234,7 +237,6 @@ std::vector<Color> ImagePaletteGenerator::GetPalette(int32_t max_color_count) {
       }
     }
   }
-  exq_free(static_cast<exq_data*>(exoquant_));
   return std::vector<Color>{palette.begin(), palette.end()};
 }
 
@@ -326,4 +328,7 @@ Color ImagePaletteGenerator::GetQuantizedColor(Color color) {
                static_cast<uint8_t>(color.b() & word_mask), color.a()};
 }
 
-ImagePaletteGenerator::~ImagePaletteGenerator() { stbi_image_free(data_); }
+ImagePaletteGenerator::~ImagePaletteGenerator() {
+  stbi_image_free(data_);
+  exq_free(static_cast<exq_data*>(exoquant_));
+}
