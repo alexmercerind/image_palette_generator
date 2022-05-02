@@ -20,30 +20,3 @@ target_include_directories(
     "external/stb"
     "external/exoquant"
 )
-
-if(BUILD_EXAMPLE STREQUAL "ON")
-    add_executable(
-        "${PROJECT_NAME}_example"
-        "example/main.cc"
-    )
-    target_include_directories(
-        "${PROJECT_NAME}_example"
-        PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}"
-    )
-    target_link_libraries(
-        "${PROJECT_NAME}_example"
-        "$<TARGET_FILE:${PROJECT_NAME}>"
-    )
-    if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-        set_target_properties(
-            "${PROJECT_NAME}_example"
-            PROPERTIES OUTPUT_NAME "example" SUFFIX ".out"
-        )
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        set_target_properties(
-            "${PROJECT_NAME}_example"
-            PROPERTIES OUTPUT_NAME "example" SUFFIX ".out"
-        )
-    endif()
-endif()
