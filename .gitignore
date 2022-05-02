@@ -14,7 +14,10 @@ Release
 Debug
 *.exe
 *.dll
+*.lib
 *.pdb
 *.vcxproj*
 *.sln
 *.obj
+*.a
+*.out
