@@ -40,9 +40,3 @@ std::string Color::ToString() {
          << static_cast<int32_t>(a_) << ")";
   return stream.str();
 }
-
-double Color::Luminance() { return 0.2126 * r_ + 0.7152 * g_ + 0.0722 * b_; }
-
-bool Color::IsDark() { return Luminance() <= 0.5; }
-
-bool Color::IsLight() { return !IsDark(); }

@@ -17,6 +17,9 @@ class Color {
   uint8_t g() const { return g_; };
   uint8_t b() const { return b_; };
   uint8_t a() const { return a_; };
+  double luminance() const { return 0.2126 * r_ + 0.7152 * g_ + 0.0722 * b_; }
+  bool is_dark() const { return luminance() < 0.5; }
+  bool is_light() const { return !is_dark(); }
 
   bool operator==(const Color color) const {
     return r_ == color.r_ && g_ == color.g_ && b_ == color.b_ && a_ == color.a_;
@@ -35,12 +38,6 @@ class Color {
   int32_t ToInt32();
 
   std::string ToString();
-
-  double Luminance();
-
-  bool IsDark();
-
-  bool IsLight();
 
  private:
   uint8_t r_;
