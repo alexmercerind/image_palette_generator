@@ -192,6 +192,13 @@ std::vector<Color> ImagePaletteGenerator::GetPalette(int32_t max_color_count) {
                        palette_buffer[i * 4 + 2], palette_buffer[i * 4 + 3]};
     palette.emplace_back(color);
   }
+  std::sort(palette.begin(), palette.end(), [](Color a, Color b) {
+    auto a_score = abs(a.r() - a.g()) + abs(a.g() - a.b()) +
+                   abs(a.b() - a.r()) * a.luminance(),
+         b_score = abs(b.r() - b.g()) + abs(b.g() - b.b()) +
+                   abs(b.b() - b.r()) * b.luminance();
+    return a_score > b_score;
+  });
   return std::vector<Color>{palette.begin(), palette.end()};
 }
 
@@ -218,6 +225,8 @@ std::vector<Color> ImagePaletteGenerator::GetTones(int32_t max_color_count) {
       }
     }
   }
+  std::sort(tones.begin(), tones.end(),
+            [](Color a, Color b) { return a.luminance() > b.luminance(); });
   return tones;
 }
 
